@@ -4,7 +4,7 @@
   "private": true,
   "description": "Serverless functions for Echo's Paystack billing, Supabase profile sync, and reminder/re-engagement notifications.",
   "dependencies": {
-    "@supabase/supabase-js": "^2.45.0",
+    "@supabase/supabase-js": "^2.49.8",
     "web-push": "^3.6.7"
   }
 }

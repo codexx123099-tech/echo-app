@@ -1,6 +1,7 @@
 [build]
   publish = "."
   functions = "netlify/functions"
+  node_bundler = "esbuild"
 
 [build.environment]
   # Pinned so global fetch/FormData/Blob (used by transcribe-audio.js to

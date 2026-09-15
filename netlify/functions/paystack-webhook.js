@@ -20,7 +20,7 @@
 
 const crypto = require('crypto');
 const { createClient } = require('@supabase/supabase-js');
-const ws = require('ws');
+
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method not allowed' };
@@ -50,11 +50,10 @@ exports.handler = async (event) => {
     return { statusCode: 400, body: 'Invalid JSON body' };
   }
 
-const supabaseAdmin = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY,
-  { realtime: { transport: ws } }
-);
+  // Plain REST client — this function only ever does simple upsert/update
+  // calls, never Realtime/WebSocket subscriptions, so no transport option
+  // is needed here at all.
+  const supabaseAdmin = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
   try {
     switch (paystackEvent.event) {

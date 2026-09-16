@@ -6,7 +6,7 @@
 [build.environment]
   # Pinned so global fetch/FormData/Blob (used by transcribe-audio.js to
   # upload to OpenAI) are guaranteed available without extra dependencies.
-  NODE_VERSION = "20"
+  NODE_VERSION = "22"
 
 # Netlify installs netlify/functions/package.json dependencies automatically
 # during deploy — nothing extra needed here for that.

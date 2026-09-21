@@ -7,6 +7,12 @@
 // customer_code saved at checkout time. One extra API round-trip, but
 // nothing to keep in sync.
 //
+// Note: Paystack's docs are genuinely ambiguous on whether the
+// GET /subscription?customer=X filter expects the numeric customer id
+// or the CUS_xxx code — rather than gamble on that, this fetches the
+// list unfiltered and matches customer_code client-side, which works
+// regardless of what that filter parameter actually expects.
+//
 // Required environment variables (same as the other Paystack functions):
 //   PAYSTACK_SECRET_KEY, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
 
@@ -49,10 +55,19 @@ exports.handler = async (event) => {
 
     const authHeaders = { 'Authorization': 'Bearer ' + process.env.PAYSTACK_SECRET_KEY };
 
-    // Find the customer's active subscription.
-    const listRes = await fetch(PAYSTACK_BASE + '/subscription?customer=' + row.paystack_customer_code, { headers: authHeaders });
+    // Fetch the subscription list unfiltered (perPage=100 comfortably
+    // covers current volume) and match the customer code ourselves,
+    // rather than trust an ambiguous query-string filter to do it.
+    const listRes = await fetch(PAYSTACK_BASE + '/subscription?perPage=100', { headers: authHeaders });
     const listData = await listRes.json();
-    const subscription = listData && listData.data && listData.data.find(s => s.status === 'active');
+
+    if (!listRes.ok || !listData.status) {
+      return { statusCode: listRes.status || 500, body: JSON.stringify({ error: (listData && listData.message) || 'Could not read subscriptions from Paystack.' }) };
+    }
+
+    const subscription = (listData.data || []).find(
+      (s) => s.customer && s.customer.customer_code === row.paystack_customer_code && s.status === 'active'
+    );
 
     if (!subscription) {
       return { statusCode: 404, body: JSON.stringify({ error: 'No active subscription found on Paystack.' }) };
